@@ -25,6 +25,8 @@ public:
                                                     std::size_t toState) const;
     [[nodiscard]] Probability emissionProbability(std::size_t state,
                                                   std::size_t observation) const;
+    [[nodiscard]] ProbabilityMatrix forward(
+        const std::vector<std::size_t>& observationSequence) const;
 
 private:
     std::vector<std::string> states_;

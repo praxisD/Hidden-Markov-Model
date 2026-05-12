@@ -40,6 +40,46 @@ Probability HiddenMarkovModel::emissionProbability(std::size_t state,
     return emissionProbabilities_.at(state).at(observation);
 }
 
+ProbabilityMatrix HiddenMarkovModel::forward(
+    const std::vector<std::size_t>& observationSequence) const {
+    if (observationSequence.empty()) {
+        throw std::invalid_argument("Observation sequence must not be empty");
+    }
+
+    for (const auto observation : observationSequence) {
+        if (observation >= observations_.size()) {
+            throw std::invalid_argument(
+                "Observation sequence contains an invalid observation index");
+        }
+    }
+
+    const auto stateCount = states_.size();
+    const auto timeSteps = observationSequence.size();
+    ProbabilityMatrix alpha(timeSteps, std::vector<Probability>(stateCount, 0.0));
+
+    for (std::size_t state = 0; state < stateCount; ++state) {
+        alpha[0][state] = startProbabilities_[state] *
+                          emissionProbabilities_[state][observationSequence[0]];
+    }
+
+    for (std::size_t time = 1; time < timeSteps; ++time) {
+        for (std::size_t toState = 0; toState < stateCount; ++toState) {
+            Probability previousSum = 0.0;
+
+            for (std::size_t fromState = 0; fromState < stateCount; ++fromState) {
+                previousSum += alpha[time - 1][fromState] *
+                               transitionProbabilities_[fromState][toState];
+            }
+
+            alpha[time][toState] =
+                emissionProbabilities_[toState][observationSequence[time]] *
+                previousSum;
+        }
+    }
+
+    return alpha;
+}
+
 void HiddenMarkovModel::validate() const {
     if (states_.empty()) {
         throw std::invalid_argument("HiddenMarkovModel requires at least one state");
