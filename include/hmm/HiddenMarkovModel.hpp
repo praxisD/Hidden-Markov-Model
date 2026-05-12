@@ -27,6 +27,8 @@ public:
                                                   std::size_t observation) const;
     [[nodiscard]] ProbabilityMatrix forward(
         const std::vector<std::size_t>& observationSequence) const;
+    [[nodiscard]] ProbabilityMatrix backward(
+        const std::vector<std::size_t>& observationSequence) const;
 
 private:
     std::vector<std::string> states_;
