@@ -1,0 +1,37 @@
+# Build output
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Binaries and libraries
+*.a
+*.dylib
+*.dll
+*.exe
+*.lib
+*.o
+*.obj
+*.so
+
+# IDE/editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Test and coverage output
+Testing/
+CTestTestfile.cmake
+*.gcda
+*.gcno
+*.profraw
+*.profdata
+
+# Local data/output
+data/generated/
+outputs/
