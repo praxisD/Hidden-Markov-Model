@@ -134,7 +134,11 @@ ProbabilityMatrix HiddenMarkovModel::stateResponsibility(
     const std::vector<std::size_t>& observationSequence) const {
     const auto alpha = forward(observationSequence);
     const auto beta = backward(observationSequence);
-    const auto totalProbability = sequenceProbability(observationSequence);
+
+    Probability totalProbability = 0.0;
+    for (const auto probability : alpha.back()) {
+        totalProbability += probability;
+    }
 
     if (totalProbability == 0.0) {
         throw std::runtime_error("Total probability of the observation sequence is zero");
