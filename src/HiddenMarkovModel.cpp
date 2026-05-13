@@ -118,6 +118,18 @@ ProbabilityMatrix HiddenMarkovModel::backward(
     return beta;
 }
 
+Probability HiddenMarkovModel::sequenceProbability(
+    const std::vector<std::size_t>& observationSequence) const {
+    const auto alpha = forward(observationSequence);
+    Probability totalProbability = 0.0;
+
+    for (const auto& prob : alpha.back()) {
+        totalProbability += prob;
+    }
+
+    return totalProbability;
+}
+
 void HiddenMarkovModel::validate() const {
     if (states_.empty()) {
         throw std::invalid_argument("HiddenMarkovModel requires at least one state");
