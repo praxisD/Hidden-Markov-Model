@@ -10,6 +10,11 @@ using Probability = double;
 using ProbabilityMatrix = std::vector<std::vector<Probability>>;
 using ProbabilityTensor = std::vector<std::vector<std::vector<Probability>>>;
 
+struct BaumWelchResult {
+    std::size_t iterations;
+    Probability finalProbability;
+};
+
 class HiddenMarkovModel {
 public:
     HiddenMarkovModel(std::vector<std::string> states,
@@ -36,6 +41,9 @@ public:
         const std::vector<std::size_t>& observationSequence) const;
     [[nodiscard]] ProbabilityTensor transitionResponsibility(
         const std::vector<std::size_t>& observationSequence) const;
+    BaumWelchResult baumWelch(const std::vector<std::size_t>& observationSequence,
+                              std::size_t maxIterations,
+                              Probability tolerance);
 
 private:
     std::vector<std::string> states_;
