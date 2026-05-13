@@ -173,7 +173,11 @@ ProbabilityTensor HiddenMarkovModel::transitionResponsibility(
 
     const auto stateCount = states_.size();
     const auto timeSteps = observationSequence.size();
-    ProbabilityTensor xi(timeSteps - 1, std::vector<std::vector<Probability>>(stateCount, std::vector<Probability>(stateCount, 0.0)));
+    ProbabilityTensor xi(
+        timeSteps - 1,
+        std::vector<std::vector<Probability>>(
+            stateCount,
+            std::vector<Probability>(stateCount, 0.0)));
 
     for (std::size_t time = 0; time < timeSteps - 1; ++time) {
         for (std::size_t fromState = 0; fromState < stateCount; ++fromState) {
