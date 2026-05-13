@@ -157,6 +157,39 @@ ProbabilityMatrix HiddenMarkovModel::stateResponsibility(
     return gamma;
 }
 
+ProbabilityTensor HiddenMarkovModel::transitionResponsibility(
+    const std::vector<std::size_t>& observationSequence) const {
+    const auto alpha = forward(observationSequence);
+    const auto beta = backward(observationSequence);
+
+    Probability totalProbability = 0.0;
+    for (const auto probability : alpha.back()) {
+        totalProbability += probability;
+    }
+
+    if (totalProbability == 0.0) {
+        throw std::runtime_error("Total probability of the observation sequence is zero");
+    }
+
+    const auto stateCount = states_.size();
+    const auto timeSteps = observationSequence.size();
+    ProbabilityTensor xi(timeSteps - 1, std::vector<std::vector<Probability>>(stateCount, std::vector<Probability>(stateCount, 0.0)));
+
+    for (std::size_t time = 0; time < timeSteps - 1; ++time) {
+        for (std::size_t fromState = 0; fromState < stateCount; ++fromState) {
+            for (std::size_t toState = 0; toState < stateCount; ++toState) {
+                xi[time][fromState][toState] =
+                    (alpha[time][fromState] *
+                     transitionProbabilities_[fromState][toState] *
+                     emissionProbabilities_[toState][observationSequence[time + 1]] *
+                     beta[time + 1][toState]) / totalProbability;
+            }
+        }
+    }
+
+    return xi;
+}
+
 void HiddenMarkovModel::validate() const {
     if (states_.empty()) {
         throw std::invalid_argument("HiddenMarkovModel requires at least one state");

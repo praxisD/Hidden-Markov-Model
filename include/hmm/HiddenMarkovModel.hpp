@@ -8,6 +8,7 @@ namespace hmm {
 
 using Probability = double;
 using ProbabilityMatrix = std::vector<std::vector<Probability>>;
+using ProbabilityTensor = std::vector<std::vector<std::vector<Probability>>>;
 
 class HiddenMarkovModel {
 public:
@@ -33,6 +34,9 @@ public:
         const std::vector<std::size_t>& observationSequence) const;
     [[nodiscard]] ProbabilityMatrix stateResponsibility(
         const std::vector<std::size_t>& observationSequence) const;
+    [[nodiscard]] ProbabilityTensor transitionResponsibility(
+        const std::vector<std::size_t>& observationSequence) const;
+    
 
 private:
     std::vector<std::string> states_;
