@@ -31,6 +31,8 @@ public:
         const std::vector<std::size_t>& observationSequence) const;
     [[nodiscard]] Probability sequenceProbability(
         const std::vector<std::size_t>& observationSequence) const;
+    [[nodiscard]] ProbabilityMatrix stateResponsibility(
+        const std::vector<std::size_t>& observationSequence) const;
 
 private:
     std::vector<std::string> states_;
