@@ -217,6 +217,10 @@ BaumWelchResult HiddenMarkovModel::baumWelch(
     Probability previousProbability = 0.0;
     Probability currentProbability = sequenceProbability(observationSequence);
 
+    if (maxIterations == 0) {
+        return {0, currentProbability};
+    }
+
     for (std::size_t iteration = 0; iteration < maxIterations; ++iteration) {
         const auto gamma = stateResponsibility(observationSequence);
         const auto xi = transitionResponsibility(observationSequence);
@@ -232,6 +236,10 @@ BaumWelchResult HiddenMarkovModel::baumWelch(
 
             for (std::size_t time = 0; time < timeSteps - 1; ++time) {
                 sumGammaFromState += gamma[time][fromState];
+            }
+
+            if (sumGammaFromState == 0.0) {
+                continue;
             }
 
             for (std::size_t toState = 0; toState < stateCount; ++toState) {
@@ -252,6 +260,10 @@ BaumWelchResult HiddenMarkovModel::baumWelch(
             
             for (std::size_t time = 0; time < timeSteps; ++time) {
                 sumGammaForState += gamma[time][state];
+            }
+
+            if (sumGammaForState == 0.0) {
+                continue;
             }
 
             for (std::size_t observation = 0; observation < observationCount; ++observation) {
@@ -275,13 +287,10 @@ BaumWelchResult HiddenMarkovModel::baumWelch(
         if (std::abs(currentProbability - previousProbability) < tolerance) {
             return {iteration + 1, currentProbability};
         }
-
-        if (iteration == maxIterations - 1) {
-            return {iteration + 1, currentProbability};
-        }
-        }
-
     }
+
+    return {maxIterations, currentProbability};
+}
 
 void HiddenMarkovModel::validate() const {
     if (states_.empty()) {
