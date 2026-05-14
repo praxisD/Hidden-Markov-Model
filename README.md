@@ -1,6 +1,6 @@
 # Hidden Markov Model
 
-A small C++20 project for building a Hidden Markov Model step by step.
+A C++20 project without external dependdencies for training a Hidden Markov Model using the Baum-Welch algorithm.
 
 ## Project Layout
 
@@ -42,11 +42,7 @@ See `data/example_observations.txt` for a small example.
 Initial probabilities, transition rows, and emission rows are created
 automatically with deterministic mild random values, then normalized.
 
-## Suggested Steps
+## Future Additions and Improvements
 
-1. Define the states and observations.
-2. Store start, transition, and emission probabilities.
-3. Add sequence probability evaluation.
-4. Add the forward algorithm.
-5. Add training with Baum-Welch.
-6. Add the Viterbi algorithm later.
+1. Add log-space implementation.
+2. Add mixture-model functionality for emission probabilities.
