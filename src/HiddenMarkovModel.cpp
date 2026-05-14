@@ -1,5 +1,6 @@
 #include "hmm/HiddenMarkovModel.hpp"
 
+#include <cmath>
 #include <stdexcept>
 
 namespace hmm {
@@ -193,6 +194,94 @@ ProbabilityTensor HiddenMarkovModel::transitionResponsibility(
 
     return xi;
 }
+
+BaumWelchResult HiddenMarkovModel::baumWelch(
+    const std::vector<std::size_t>& observationSequence,
+    std::size_t maxIterations,
+    Probability tolerance) {
+    if (observationSequence.empty()) {
+        throw std::invalid_argument("Observation sequence must not be empty");
+    }
+
+    for (const auto observation : observationSequence) {
+        if (observation >= observations_.size()) {
+            throw std::invalid_argument(
+                "Observation sequence contains an invalid observation index");
+        }
+    }
+
+    const auto stateCount = states_.size();
+    const auto observationCount = observations_.size();
+    const auto timeSteps = observationSequence.size();
+
+    Probability previousProbability = 0.0;
+    Probability currentProbability = sequenceProbability(observationSequence);
+
+    for (std::size_t iteration = 0; iteration < maxIterations; ++iteration) {
+        const auto gamma = stateResponsibility(observationSequence);
+        const auto xi = transitionResponsibility(observationSequence);
+
+        // Update start probabilities
+        for (std::size_t state = 0; state < stateCount; ++state) {
+            startProbabilities_[state] = gamma[0][state];
+        }
+
+        // Update transition probabilities
+        for (std::size_t fromState = 0; fromState < stateCount; ++fromState) {
+            Probability sumGammaFromState = 0.0;
+
+            for (std::size_t time = 0; time < timeSteps - 1; ++time) {
+                sumGammaFromState += gamma[time][fromState];
+            }
+
+            for (std::size_t toState = 0; toState < stateCount; ++toState) {
+                Probability sumXiFromToState = 0.0;
+
+                for (std::size_t time = 0; time < timeSteps - 1; ++time) {
+                    sumXiFromToState += xi[time][fromState][toState];
+                }
+
+                transitionProbabilities_[fromState][toState] =
+                    sumXiFromToState / sumGammaFromState;
+            }
+        }
+
+        // Update emission probabilities
+        for (std::size_t state = 0; state < stateCount; ++state) {            
+            Probability sumGammaForState = 0.0;
+            
+            for (std::size_t time = 0; time < timeSteps; ++time) {
+                sumGammaForState += gamma[time][state];
+            }
+
+            for (std::size_t observation = 0; observation < observationCount; ++observation) {
+
+                Probability sumGammaObservationForState = 0.0;
+
+                for (std::size_t time = 0; time < timeSteps; ++time) {
+                    if (observationSequence[time] == observation) {
+                        sumGammaObservationForState += gamma[time][state];
+                    }
+                }
+
+                emissionProbabilities_[state][observation] =
+                    sumGammaObservationForState / sumGammaForState;
+            }
+        }
+
+        previousProbability = currentProbability;
+        currentProbability = sequenceProbability(observationSequence);
+
+        if (std::abs(currentProbability - previousProbability) < tolerance) {
+            return {iteration + 1, currentProbability};
+        }
+
+        if (iteration == maxIterations - 1) {
+            return {iteration + 1, currentProbability};
+        }
+        }
+
+    }
 
 void HiddenMarkovModel::validate() const {
     if (states_.empty()) {
