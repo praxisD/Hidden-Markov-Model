@@ -39,6 +39,9 @@ zero-based observation indices, separated by whitespace or commas:
 
 See `data/example_observations.txt` for a small example.
 
+Initial probabilities, transition rows, and emission rows are created
+automatically with deterministic mild random values, then normalized.
+
 ## Suggested Steps
 
 1. Define the states and observations.

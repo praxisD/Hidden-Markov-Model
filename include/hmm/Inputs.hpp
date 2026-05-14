@@ -17,6 +17,12 @@ struct TrainingInput {
     Probability tolerance;
 };
 
+struct ModelInitialization {
+    std::vector<Probability> startProbabilities;
+    ProbabilityMatrix transitionProbabilities;
+    ProbabilityMatrix emissionProbabilities;
+};
+
 TrainingInput readTrainingInput(std::istream& input, std::ostream& output);
 
 std::vector<std::size_t> readObservationSequenceFile(
@@ -26,9 +32,7 @@ std::vector<std::size_t> readObservationSequenceFile(
 std::vector<std::string> makeIndexedNames(const std::string& prefix,
                                           std::size_t count);
 
-std::vector<Probability> equalProbabilities(std::size_t count);
-
-ProbabilityMatrix equalProbabilityMatrix(std::size_t rows,
-                                         std::size_t columns);
+ModelInitialization makeRandomInitialization(std::size_t stateCount,
+                                             std::size_t observationCount);
 
 } // namespace hmm

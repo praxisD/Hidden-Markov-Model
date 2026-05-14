@@ -5,6 +5,7 @@
 #include <cctype>
 #include <fstream>
 #include <limits>
+#include <random>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -14,6 +15,9 @@ namespace {
 
 constexpr std::size_t defaultMaxIterations = 100;
 constexpr Probability defaultTolerance = 1e-6;
+constexpr unsigned int defaultInitializationSeed = 12345;
+constexpr Probability minInitialWeight = 0.5;
+constexpr Probability maxInitialWeight = 1.5;
 
 std::string trim(const std::string& value) {
     const auto first = value.find_first_not_of(" \t\n\r\f\v");
@@ -184,6 +188,48 @@ std::size_t parseObservationIndex(const std::string& token,
     return index;
 }
 
+std::vector<Probability> randomProbabilities(std::size_t count,
+                                             std::mt19937& generator) {
+    if (count == 0) {
+        throw std::invalid_argument("Cannot create probabilities for zero entries");
+    }
+
+    std::uniform_real_distribution<Probability> distribution(minInitialWeight,
+                                                             maxInitialWeight);
+    std::vector<Probability> probabilities;
+    probabilities.reserve(count);
+
+    Probability total = 0.0;
+    for (std::size_t index = 0; index < count; ++index) {
+        const auto value = distribution(generator);
+        probabilities.push_back(value);
+        total += value;
+    }
+
+    for (auto& probability : probabilities) {
+        probability /= total;
+    }
+
+    return probabilities;
+}
+
+ProbabilityMatrix randomProbabilityMatrix(std::size_t rows,
+                                          std::size_t columns,
+                                          std::mt19937& generator) {
+    if (rows == 0 || columns == 0) {
+        throw std::invalid_argument("Cannot create an empty probability matrix");
+    }
+
+    ProbabilityMatrix matrix;
+    matrix.reserve(rows);
+
+    for (std::size_t row = 0; row < rows; ++row) {
+        matrix.push_back(randomProbabilities(columns, generator));
+    }
+
+    return matrix;
+}
+
 } // namespace
 
 TrainingInput readTrainingInput(std::istream& input, std::ostream& output) {
@@ -293,21 +339,22 @@ std::vector<std::string> makeIndexedNames(const std::string& prefix,
     return names;
 }
 
-std::vector<Probability> equalProbabilities(std::size_t count) {
-    if (count == 0) {
-        throw std::invalid_argument("Cannot create probabilities for zero entries");
+ModelInitialization makeRandomInitialization(std::size_t stateCount,
+                                             std::size_t observationCount) {
+    if (stateCount == 0) {
+        throw std::invalid_argument("State count must be greater than zero");
     }
 
-    return std::vector<Probability>(count, 1.0 / static_cast<Probability>(count));
-}
-
-ProbabilityMatrix equalProbabilityMatrix(std::size_t rows,
-                                         std::size_t columns) {
-    if (rows == 0 || columns == 0) {
-        throw std::invalid_argument("Cannot create an empty probability matrix");
+    if (observationCount == 0) {
+        throw std::invalid_argument("Observation count must be greater than zero");
     }
 
-    return ProbabilityMatrix(rows, equalProbabilities(columns));
+    std::mt19937 generator(defaultInitializationSeed);
+    return {
+        randomProbabilities(stateCount, generator),
+        randomProbabilityMatrix(stateCount, stateCount, generator),
+        randomProbabilityMatrix(stateCount, observationCount, generator),
+    };
 }
 
 } // namespace hmm

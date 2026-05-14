@@ -52,19 +52,22 @@ void printModelParameters(const hmm::HiddenMarkovModel& model) {
 int main() {
     try {
         const auto input = hmm::readTrainingInput(std::cin, std::cout);
+        const auto initialization =
+            hmm::makeRandomInitialization(input.stateCount, input.observationCount);
 
         auto model = hmm::HiddenMarkovModel{
             hmm::makeIndexedNames("State", input.stateCount),
             hmm::makeIndexedNames("Observation", input.observationCount),
-            hmm::equalProbabilities(input.stateCount),
-            hmm::equalProbabilityMatrix(input.stateCount, input.stateCount),
-            hmm::equalProbabilityMatrix(input.stateCount, input.observationCount),
+            initialization.startProbabilities,
+            initialization.transitionProbabilities,
+            initialization.emissionProbabilities,
         };
 
         std::cout << std::setprecision(8);
         std::cout << "\nLoaded " << input.observationSequence.size()
                   << " observations.\n\n";
-        std::cout << "Parameters before training:\n";
+        std::cout << "Parameters before training, using deterministic random "
+                     "initialization:\n";
         printModelParameters(model);
 
         const auto initialProbability =
@@ -85,9 +88,7 @@ int main() {
         std::cout << "Parameters after training:\n";
         printModelParameters(model);
 
-        std::cout << "\nNote: equal initialization keeps hidden states symmetric. "
-                     "The trained rows may remain identical unless initialization is "
-                     "made non-uniform later.\n";
+        std::cout << "\nInitialization is deterministic for repeatable runs.\n";
     } catch (const std::exception& error) {
         std::cerr << "Error: " << error.what() << '\n';
         return 1;
