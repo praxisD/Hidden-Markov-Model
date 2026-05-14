@@ -8,6 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(hidden-markov-model
     src/HiddenMarkovModel.cpp
+    src/Inputs.cpp
     src/main.cpp
 )
 
